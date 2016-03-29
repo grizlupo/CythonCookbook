@@ -1,0 +1,6 @@
+{
+  "name": "Cythoncookbook",
+  "tagline": "",
+  "body": "# CythonCookbook\r\n\r\n### #define으로 정의된 상수 사용하기\r\n\r\n일단 상수가 정의된 헤드 파일에 대해 `extern` 선언을 하고, 그 아래에 `enum`으로 필요한 상수들을 나열하면 된다.\r\n\r\n```cython\r\ncdef extern from 'header.h':\r\n    enum:\r\n        MAX_LENGTH\r\n```\r\n\r\n[winpcap 사용하기](winpcap.md)",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}

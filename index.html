@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <title>Cythoncookbook by grizlupo</title>
+  </head>
+
+  <body>
+
+    <header>
+      <div class="container">
+        <h1>Cythoncookbook</h1>
+        <h2></h2>
+
+        <section id="downloads">
+          <a href="https://github.com/grizlupo/CythonCookbook/zipball/master" class="btn">Download as .zip</a>
+          <a href="https://github.com/grizlupo/CythonCookbook/tarball/master" class="btn">Download as .tar.gz</a>
+          <a href="https://github.com/grizlupo/CythonCookbook" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+        </section>
+      </div>
+    </header>
+
+    <div class="container">
+      <section id="main_content">
+        <h1>
+<a id="cythoncookbook" class="anchor" href="#cythoncookbook" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>CythonCookbook</h1>
+
+<h3>
+<a id="define으로-정의된-상수-사용하기" class="anchor" href="#define%EC%9C%BC%EB%A1%9C-%EC%A0%95%EC%9D%98%EB%90%9C-%EC%83%81%EC%88%98-%EC%82%AC%EC%9A%A9%ED%95%98%EA%B8%B0" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>#define으로 정의된 상수 사용하기</h3>
+
+<p>일단 상수가 정의된 헤드 파일에 대해 <code>extern</code> 선언을 하고, 그 아래에 <code>enum</code>으로 필요한 상수들을 나열하면 된다.</p>
+
+<div class="highlight highlight-source-cython"><pre><span class="pl-k">cdef</span> <span class="pl-k">extern</span> <span class="pl-k">from</span> <span class="pl-s"><span class="pl-pds">'</span>header.h<span class="pl-pds">'</span></span>:
+    <span class="pl-k">enum</span>:
+        MAX_LENGTH</pre></div>
+
+<p><a href="winpcap.md">winpcap 사용하기</a></p>
+      </section>
+    </div>
+
+    
+  </body>
+</html>
