@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+        <meta charset="utf-8" />
+        <title>winpcap wrapping</title>
+        <link rel="stylesheet" href="/CythonCookbook/theme/css/main.css" />
+
+        <!--[if IE]>
+            <script src="https://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="/CythonCookbook/">Cython Cookbook </a></h1>
+                <nav><ul>
+                    <li><a href="/CythonCookbook/pages/cookbook.html">Cookbook</a></li>
+                    <li class="active"><a href="/CythonCookbook/pages/winpcap-wrapping.html">winpcap wrapping</a></li>
+                </ul></nav>
+        </header><!-- /#banner -->
+<section id="content" class="body">
+    <h1 class="entry-title">winpcap wrapping</h1>
+    
+    <p>winpcap은 libpcap의 윈도우즈 판이고, 이걸 파이썬에서 사용할 수 있도록 해주는 모듈도 이미 있다. 그런데도 같은 기능의 모듈을 만들려는 것은 Cython을 연습해보려는 것이 가장 크고, 그 다음이 libpcap에 익숙해지려는 것이다. 이 글은 64비트 윈도우즈 10에서 파이썬은 3.5, Cython은 0.23.4을 사용하는 환경에서 쓰고 있다.</p>
+<p>우선은 winpcap이 필요하다. <a href="http://www.winpcap.org/install/default.htm/">http://www.winpcap.org/install/default.htm</a>에서 받을 수 있다. 이 글을 쓰고 있는 현재 최신 버전은 4.1.3이다. 라이브러리도 챙겨야 한다. <a href="http://www.winpcap.org/devel.htm/">http://www.winpcap.org/devel.htm</a>에서 받을 수 있다. 버전은 4.1.2다. 4.1.3에 사용해도 된다고 되어 있다. winpcap은 설치하고, 라이브러리는 적당한 곳에 압축을 푼다.</p>
+<h2>1 단계</h2>
+<p>먼저 libpcap 자체가 아직은 낯서니까 익숙해지는 과정으로 winpcap 문서에 있는 학습서tutorial을 Cython으로 진행해 볼 것이다.</p>
+<div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&quot;pcap.h&quot;</span><span class="cp"></span>
+
+<span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="n">pcap_if_t</span> <span class="o">*</span><span class="n">alldevs</span><span class="p">;</span>
+    <span class="n">pcap_if_t</span> <span class="o">*</span><span class="n">d</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span>
+    <span class="kt">char</span> <span class="n">errbuf</span><span class="p">[</span><span class="n">PCAP_ERRBUF_SIZE</span><span class="p">];</span>
+
+    <span class="cm">/* Retrieve the device list from the local machine */</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">pcap_findalldevs_ex</span><span class="p">(</span><span class="n">PCAP_SRC_IF_STRING</span><span class="p">,</span> <span class="nb">NULL</span> <span class="cm">/* auth is not needed */</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">alldevs</span><span class="p">,</span> <span class="n">errbuf</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span><span class="s">&quot;Error in pcap_findalldevs_ex: %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">errbuf</span><span class="p">);</span>
+        <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="cm">/* Print the list */</span>
+    <span class="k">for</span><span class="p">(</span><span class="n">d</span><span class="o">=</span> <span class="n">alldevs</span><span class="p">;</span> <span class="n">d</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">;</span> <span class="n">d</span><span class="o">=</span> <span class="n">d</span><span class="o">-&gt;</span><span class="n">next</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d. %s&quot;</span><span class="p">,</span> <span class="o">++</span><span class="n">i</span><span class="p">,</span> <span class="n">d</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">d</span><span class="o">-&gt;</span><span class="n">description</span><span class="p">)</span>
+            <span class="n">printf</span><span class="p">(</span><span class="s">&quot; (%s)</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">d</span><span class="o">-&gt;</span><span class="n">description</span><span class="p">);</span>
+        <span class="k">else</span>
+            <span class="nf">printf</span><span class="p">(</span><span class="s">&quot; (No description available)</span><span class="err">\</span><span class="n">n</span><span class="s">&quot;)</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">No interfaces found! Make sure WinPcap is installed.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+        <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="cm">/* We don&#39;t need any more the device list. Free it */</span>
+    <span class="n">pcap_freealldevs</span><span class="p">(</span><span class="n">alldevs</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<h3>main 함수 껍데기 만들기</h3>
+<p>일단은 구체적인 처리는 잠시 접어두고, 파이썬에서 껍데기 뿐이더라도 main을 호출하도록 해 보자! 이건 libpcap보다는 Cython에 대한 것이다.</p>
+<p>_pcap.pyx라는 파일을 만든다. 내용은</p>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;pcap&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>그리고 이걸 빌드할 파일과, 테스트할 파일을 만든다.</p>
+<p>빌드용으로는 아래 내용으로 setup.py 파일을 만든다.</p>
+<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">distutils.core</span> <span class="kn">import</span> <span class="n">setup</span>
+<span class="kn">from</span> <span class="nn">distutils.extension</span> <span class="kn">import</span> <span class="n">Extension</span>
+<span class="kn">from</span> <span class="nn">Cython.Build</span> <span class="kn">import</span> <span class="n">cythonize</span>
+
+<span class="n">ext_modules</span> <span class="o">=</span> <span class="n">cythonize</span><span class="p">(</span>
+    <span class="n">Extension</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;_pcap&#39;</span><span class="p">,</span>
+        <span class="n">sources</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_pcap.pyx&#39;</span><span class="p">])</span>
+    <span class="p">)</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span><span class="s1">&#39;pcap&#39;</span><span class="p">,</span>
+    <span class="n">ext_modules</span> <span class="o">=</span> <span class="n">ext_modules</span><span class="p">,</span>
+    <span class="p">)</span>
+</pre></div>
+
+
+<p>테스트는 아래 내용으로 test.py를 만든다.</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">_pcap</span>
+
+<span class="n">_pcap</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+
+<p>그리고 실제 빌드는 아래 명령을 계속 해야 하는데 귀찮으니까 배치파일을 하나 만든다. build.bat다.</p>
+<div class="highlight"><pre><span></span>py -3 setup.py build_ext --inplace
+</pre></div>
+
+
+<p>제대로 되었다면 _pcap.cp35-win_amd64.pyd가 만들어진다. 그리고 test.py를 했을 때 화면에 'pcap'이 찍히면 일단 첫 고비는 넘은 것이다.</p>
+<h3>pcap_findalldevs_ex 함수 호출하기</h3>
+<p>이제 _pcap.pyx에 아래의 코드를 추가한다.</p>
+<div class="highlight"><pre><span></span><span class="n">cdef</span> <span class="n">extern</span> <span class="kn">from</span> <span class="s1">&#39;pcap.h&#39;</span><span class="p">:</span>
+    <span class="n">cdef</span> <span class="n">struct</span> <span class="n">pcap_rmtauth</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="n">cdef</span> <span class="n">struct</span> <span class="n">pcap_if</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="nb">int</span> <span class="n">pcap_findalldevs_ex</span><span class="p">(</span><span class="n">char</span><span class="o">*</span> <span class="n">source</span><span class="p">,</span> <span class="n">pcap_rmtauth</span><span class="o">*</span> <span class="n">auth</span><span class="p">,</span> <span class="n">pcap_if</span><span class="o">**</span> <span class="n">alldevs</span><span class="p">,</span> <span class="n">char</span><span class="o">*</span> <span class="n">errbuf</span><span class="p">)</span>
+</pre></div>
+
+
+<p>pcap_findalldevs_ex 함수를 사용하기 위한 준비 단계라고 보면 된다. 이 코드를 제대로 컴파일하려면 pcap.h가 어디에 있는지 그리고 최종적으로 어떤 라이브러리를 링크해야 하는지 등을 알려 줘야 한다. 이를 위해서 setup.py도 아래처럼 고친다.</p>
+<div class="highlight"><pre><span></span><span class="n">ext_modules</span> <span class="o">=</span> <span class="n">cythonize</span><span class="p">(</span>
+    <span class="n">Extension</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;_pcap&#39;</span><span class="p">,</span>
+        <span class="n">sources</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_pcap.pyx&#39;</span><span class="p">],</span>
+        <span class="n">libraries</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;wpcap&#39;</span><span class="p">,</span> <span class="s1">&#39;Packet&#39;</span><span class="p">],</span>
+        <span class="n">define_macros</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;WIN32&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)],</span>
+        <span class="n">include_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">winpcap_dir</span><span class="p">,</span> <span class="s1">&#39;Include&#39;</span><span class="p">)],</span>
+        <span class="n">library_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">winpcap_dir</span><span class="p">,</span> <span class="s1">&#39;Lib&#39;</span><span class="p">,</span> <span class="s1">&#39;x64&#39;</span><span class="p">)]),</span>
+    <span class="p">)</span>
+</pre></div>
+
+
+<p>winpcap_dir는 앞서 받은 라이브러리를 푼 디렉토리다. 그리고 'WIN32'라는 매크로를 추가로 정의해 줘야 한다. 기본적으로 정의되는 매크로는 '_WIN32'로 앞에 밑줄이 있는데, pcap.h에서는 밑줄이 없는 WIN32를 사용하고 있으므로 추가해 준다. 여기까지 하고 에러없이 빌드가 되는지를 확인한다.</p>
+<p>이제 함수를 호출해 보자!</p>
+<div class="highlight"><pre><span></span>    <span class="n">pcap_if_t</span> <span class="o">*</span><span class="n">alldevs</span><span class="p">;</span>
+    <span class="kt">char</span> <span class="n">errbuf</span><span class="p">[</span><span class="n">PCAP_ERRBUF_SIZE</span><span class="p">];</span>
+    <span class="cm">/* Retrieve the device list from the local machine */</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">pcap_findalldevs_ex</span><span class="p">(</span><span class="n">PCAP_SRC_IF_STRING</span><span class="p">,</span> <span class="nb">NULL</span> <span class="cm">/* auth is not needed */</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">alldevs</span><span class="p">,</span> <span class="n">errbuf</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+
+
+<p>C에서는 이렇게 되어 있다. 이를 Cython으로 처리하려면 먼저 <code>#define</code>으로 정의된 2개의 상수에 대해 알려주어야 한다. 숫자인 PCAP_ERRBUF_SIZE는 <code>enum</code>을 사용하면 되고, 문자열인 PCAP_SRC_IF_STRING는 변수를 선언하듯이 하면 된다.</p>
+<div class="highlight"><pre><span></span><span class="k">cdef</span> <span class="kr">extern</span> <span class="k">from</span> <span class="s">&#39;pcap.h&#39;</span><span class="p">:</span>
+    <span class="n">enum</span><span class="p">:</span>
+        <span class="n">PCAP_ERRBUF_SIZE</span>  <span class="c"># 256</span>
+    <span class="n">char</span><span class="o">*</span> <span class="n">PCAP_SRC_IF_STRING</span>  <span class="c"># &quot;rpcap://&quot;</span>
+</pre></div>
+
+
+<p>그리고 실제 호출은 main 함수 안에서 다음과 같이 한다. </p>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="k">cdef</span> <span class="kt">pcap_if_t</span>* <span class="nf">alldevs</span>
+    <span class="k">cdef</span> <span class="kt">char</span> <span class="kt">errbuf</span>[<span class="kt">PCAP_ERRBUF_SIZE</span>]
+    <span class="k">cdef</span> <span class="kt">int</span> <span class="nf">result</span> <span class="o">=</span> <span class="n">pcap_findalldevs_ex</span><span class="p">(</span><span class="n">PCAP_SRC_IF_STRING</span><span class="p">,</span> <span class="bp">NULL</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">alldevs</span><span class="p">,</span> <span class="n">errbuf</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="o">-</span><span class="mf">1</span><span class="p">:</span>
+        <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&#39;Error in pcap_findalldevs_ex: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">errbuf</span><span class="p">)</span>
+        <span class="nb">exit</span><span class="p">(</span><span class="mf">1</span><span class="p">)</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&#39;result: </span><span class="si">%d</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
+</pre></div>
+
+
+<p>주석을 지우고, <code>cdef</code>가 추가된 것만 다르지 거의 같다. <code>NULL</code>은 Cython이 알아서 한다. printf나 exit의 C 표준 라이브러리를 사용하려면 _pcap.pyx에 다음 코드도 함께 넣어야 한다.</p>
+<div class="highlight"><pre><span></span><span class="k">from</span> <span class="nn">libc.stdio</span> <span class="k">cimport</span> <span class="n">printf</span><span class="p">,</span> <span class="n">fprintf</span><span class="p">,</span> <span class="n">stderr</span>
+<span class="k">from</span> <span class="nn">libc.stdlib</span> <span class="k">cimport</span> <span class="nb">exit</span>
+</pre></div>
+
+
+<p>이대로 빌드 하면 PCAP_SRC_IF_STRING가 없다는 에러가 발생한다. PCAP_SRC_IF_STRING는 remote-ext.h 헤드 파일에 정의되어 있는데, HAVE_REMOTE가 정의되어 있는 경우에만 포함된다. 그러므로 에러 없이 컴파일을 하려면 setup.py의 define_macros에 ('HAVE_REMOTE', None)도 추가해야 한다.</p>
+<p>여기까지 하고 빌드하고 test.py했을 때 'result 0'이 찍히면 된다.</p>
+</section>
+        <section id="extras" class="body">
+        </section><!-- /#extras -->
+
+        <footer id="contentinfo" class="body">
+        </footer><!-- /#contentinfo -->
+
+</body>
+</html>

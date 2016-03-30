@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
         <meta charset="utf-8" />
-        <title>Cython Cookbook</title>
+        <title>Cookbook</title>
         <link rel="stylesheet" href="/CythonCookbook/theme/css/main.css" />
 
         <!--[if IE]>
@@ -14,14 +14,20 @@
         <header id="banner" class="body">
                 <h1><a href="/CythonCookbook/">Cython Cookbook </a></h1>
                 <nav><ul>
-                    <li><a href="/CythonCookbook/pages/cookbook.html">Cookbook</a></li>
+                    <li class="active"><a href="/CythonCookbook/pages/cookbook.html">Cookbook</a></li>
                     <li><a href="/CythonCookbook/pages/winpcap-wrapping.html">winpcap wrapping</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
 <section id="content" class="body">
-<h2>Pages</h2>
-        <li><a href="/CythonCookbook/pages/cookbook.html">Cookbook</a></li>
-        <li><a href="/CythonCookbook/pages/winpcap-wrapping.html">winpcap wrapping</a></li>
+    <h1 class="entry-title">Cookbook</h1>
+    
+    <h1>Cookbook</h1>
+<h3>#define으로 정의된 상수 사용하기</h3>
+<p>일단 상수가 정의된 헤드 파일에 대해 <code>extern</code> 선언을 하고, 그 아래에 <code>enum</code>으로 필요한 상수들을 나열하면 된다.</p>
+<div class="highlight"><pre><span></span><span class="k">cdef</span> <span class="kr">extern</span> <span class="k">from</span> <span class="s">&#39;header.h&#39;</span><span class="p">:</span>
+    <span class="n">enum</span><span class="p">:</span>
+        <span class="n">MAX_LENGTH</span>
+</pre></div>
 </section>
         <section id="extras" class="body">
         </section><!-- /#extras -->
